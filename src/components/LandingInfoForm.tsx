@@ -8,6 +8,8 @@ import type { Store } from '@/lib/types';
 export default function LandingInfoForm({ store }: { store: Store }) {
   const router = useRouter();
   const supabase = createClient();
+  const [city, setCity] = useState(store.city || '');
+  const [address, setAddress] = useState(store.address || '');
   const [about, setAbout] = useState(store.about || '');
   const [showMap, setShowMap] = useState(store.show_map);
   const [saving, setSaving] = useState(false);
@@ -17,15 +19,28 @@ export default function LandingInfoForm({ store }: { store: Store }) {
     e.preventDefault();
     setSaving(true);
     setMsg('');
-    const { error } = await supabase.from('stores').update({ about, show_map: showMap }).eq('id', store.id);
+    const { error } = await supabase.from('stores').update({ city, address, about, show_map: showMap }).eq('id', store.id);
     setSaving(false);
     if (error) { setMsg('Ошибка: ' + error.message); return; }
     setMsg('Сохранено ✓');
     router.refresh();
   }
 
+  const inp = 'w-full rounded-lg border border-gray-200 px-4 py-2.5 outline-none focus:border-rose-400';
+
   return (
     <form onSubmit={save} className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="mb-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Город</label>
+          <input className={inp} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Алматы" />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Адрес</label>
+          <input className={inp} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ул. Абая, 10" />
+        </div>
+      </div>
+
       <label className="mb-1 block text-sm font-medium text-gray-700">Блок «О нас»</label>
       <textarea
         value={about}

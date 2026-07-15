@@ -21,8 +21,6 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     name: store.name,
     slug: store.slug,
     description: store.description || '',
-    city: store.city || '',
-    address: store.address || '',
     whatsapp: store.whatsapp || '',
     currency: store.currency || '₸',
     button_color: store.button_color || '#7a1220',
@@ -103,16 +101,8 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
 
       {/* Контакты */}
       <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold">Контакты и адрес</h2>
+        <h2 className="mb-4 text-lg font-semibold">Контакты</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={label}>Город</label>
-            <input className={input} value={form.city} onChange={(e) => set('city', e.target.value)} placeholder="Алматы" />
-          </div>
-          <div>
-            <label className={label}>Адрес</label>
-            <input className={input} value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="ул. Абая, 10" />
-          </div>
           <div>
             <label className={label}>Номер WhatsApp (для заказов)</label>
             <input className={input} value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} placeholder="77001234567" />
@@ -127,6 +117,7 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             </select>
           </div>
         </div>
+        <p className="mt-3 text-xs text-gray-400">Город и адрес теперь редактируются в разделе «Главная страница».</p>
       </section>
 
       {/* Оформление */}

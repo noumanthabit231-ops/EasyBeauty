@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Package, LayoutGrid, Tag, ExternalLink } from 'lucide-react';
+import { Package, LayoutGrid, Home, ExternalLink } from 'lucide-react';
 import { getSessionUser, getOwnerStore, isSubscriptionActive } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import Onboarding from '@/components/Onboarding';
@@ -14,10 +14,10 @@ export default async function DashboardHome() {
   if (!store) return <Onboarding userId={user.id} />;
 
   const supabase = createClient();
-  const [{ count: products }, { count: categories }, { count: promos }] = await Promise.all([
+  const [{ count: products }, { count: categories }, { count: linksCount }] = await Promise.all([
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('store_id', store.id),
     supabase.from('categories').select('*', { count: 'exact', head: true }).eq('store_id', store.id),
-    supabase.from('promos').select('*', { count: 'exact', head: true }).eq('store_id', store.id),
+    supabase.from('links').select('*', { count: 'exact', head: true }).eq('store_id', store.id),
   ]);
 
   const active = isSubscriptionActive(store);
@@ -25,7 +25,7 @@ export default async function DashboardHome() {
   const cards = [
     { label: 'Товаров', value: products ?? 0, icon: Package, href: '/dashboard/products' },
     { label: 'Категорий', value: categories ?? 0, icon: LayoutGrid, href: '/dashboard/categories' },
-    { label: 'Акций', value: promos ?? 0, icon: Tag, href: '/dashboard/promos' },
+    { label: 'Кнопок на главной', value: linksCount ?? 0, icon: Home, href: '/dashboard/homepage' },
   ];
 
   return (

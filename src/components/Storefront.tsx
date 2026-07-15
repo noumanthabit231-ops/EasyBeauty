@@ -3,11 +3,11 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import {
   ShoppingBag, Plus, Minus, X, MapPin, Tag, ArrowLeft, Search, ChevronRight, ChevronDown,
-  Home, Instagram, Music2, Send, Percent, Gift, Package, Link as LinkIcon, Info,
+  Home, Instagram, Music2, Send, Percent, Gift, Package, Link as LinkIcon, Info, LayoutGrid,
 } from 'lucide-react';
 import { fontStack } from '@/lib/theme';
 import BannerCarousel from '@/components/BannerCarousel';
-import type { Store, Category, Product, Promo, Banner, Link, LinkKind, CartItem } from '@/lib/types';
+import type { Store, Category, Product, Banner, Link, LinkKind, CartItem } from '@/lib/types';
 
 function luminance(hex: string): number {
   const h = hex.replace('#', '');
@@ -22,6 +22,9 @@ function readableDark(...colors: string[]): string {
   const dark = colors.filter((c) => c && c.startsWith('#')).sort((a, b) => luminance(a) - luminance(b))[0];
   return dark && luminance(dark) < 0.55 ? dark : '#3f1d22';
 }
+function isDiscounted(p: Product): boolean {
+  return p.old_price != null && Number(p.old_price) > Number(p.price);
+}
 
 function WhatsAppGlyph({ color }: { color: string }) {
   return (
@@ -35,24 +38,25 @@ export default function Storefront({
   store,
   categories,
   products,
-  promos,
   banners,
   links,
 }: {
   store: Store;
   categories: Category[];
   products: Product[];
-  promos: Promo[];
   banners: Banner[];
   links: Link[];
 }) {
   const [atLanding, setAtLanding] = useState(true);
   const [stack, setStack] = useState<Category[]>([]);
   const [showAll, setShowAll] = useState(false);
+  const [saleView, setSaleView] = useState(false);
   const [query, setQuery] = useState('');
   const [aboutOpen, setAboutOpen] = useState(false);
   const [cart, setCart] = useState<Record<string, CartItem>>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [detail, setDetail] = useState<Product | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
 
   const accent = store.button_color || '#7a1220';
   const onAccent = store.text_on_button || '#ffffff';
@@ -79,34 +83,51 @@ export default function Storefront({
   const productsOf = (cid: string) => products.filter((p) => p.category_id === cid);
 
   const current = stack[stack.length - 1] ?? null;
-  const catalogRoot = stack.length === 0 && !showAll;
+  const catalogRoot = stack.length === 0 && !showAll && !saleView;
   const subcats = childrenOf(current?.id ?? null);
   const leafProducts = current ? productsOf(current.id) : [];
 
   const shownProducts = useMemo(() => {
-    let list: Product[] = showAll ? products : current ? products.filter((p) => p.category_id === current.id) : [];
+    let list: Product[] = showAll
+      ? products
+      : saleView
+      ? products.filter(isDiscounted)
+      : current
+      ? products.filter((p) => p.category_id === current.id)
+      : [];
     const q = query.trim().toLowerCase();
     if (q) list = list.filter((p) => p.name.toLowerCase().includes(q));
     return list;
-  }, [showAll, current, query, products]);
+  }, [showAll, saleView, current, query, products]);
 
   const addrStr = [store.city, store.address].filter(Boolean).join(', ');
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addrStr)}&output=embed`;
   const mapLink = `https://maps.google.com/maps?q=${encodeURIComponent(addrStr)}`;
 
   // навигация
-  function goLanding() { setAtLanding(true); setStack([]); setShowAll(false); setQuery(''); }
-  function openCatalogRoot() { setAtLanding(false); setStack([]); setShowAll(false); setQuery(''); }
-  function openAllProducts() { setAtLanding(false); setStack([]); setShowAll(true); setQuery(''); }
-  function enter(c: Category) { setQuery(''); setShowAll(false); setStack((s) => [...s, c]); }
-  function jumpTo(index: number) { setStack((s) => s.slice(0, index + 1)); setShowAll(false); setQuery(''); }
-  function back() { setQuery(''); if (showAll) { openCatalogRoot(); return; } if (stack.length === 0) { goLanding(); return; } setStack((s) => s.slice(0, -1)); }
+  function goLanding() { setAtLanding(true); setStack([]); setShowAll(false); setSaleView(false); setQuery(''); }
+  function openCatalogRoot() { setAtLanding(false); setStack([]); setShowAll(false); setSaleView(false); setQuery(''); }
+  function openAllProducts() { setAtLanding(false); setStack([]); setShowAll(true); setSaleView(false); setQuery(''); }
+  function openSale() { setAtLanding(false); setStack([]); setSaleView(true); setShowAll(false); setQuery(''); }
+  function enter(c: Category) { setQuery(''); setShowAll(false); setSaleView(false); setStack((s) => [...s, c]); }
+  function jumpTo(index: number) { setStack((s) => s.slice(0, index + 1)); setShowAll(false); setSaleView(false); setQuery(''); }
+  function back() {
+    setQuery('');
+    if (showAll || saleView) { openCatalogRoot(); return; }
+    if (stack.length === 0) { goLanding(); return; }
+    setStack((s) => s.slice(0, -1));
+  }
 
   // корзина
   const cartItems = Object.values(cart);
   const totalQty = cartItems.reduce((s, i) => s + i.qty, 0);
   const totalSum = cartItems.reduce((s, i) => s + i.qty * i.product.price, 0);
   function addToCart(p: Product) { setCart((c) => ({ ...c, [p.id]: { product: p, qty: (c[p.id]?.qty || 0) + 1 } })); }
+  function addFromDetail(p: Product) {
+    addToCart(p);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1500);
+  }
   function changeQty(id: string, delta: number) {
     setCart((c) => {
       const item = c[id];
@@ -126,7 +147,7 @@ export default function Storefront({
     window.open(`https://wa.me/${store.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
-  // ---------- иконки ссылок ----------
+  // ---------- ссылки ----------
   function linkIcon(kind: LinkKind, color: string) {
     const cls = 'h-5 w-5';
     switch (kind) {
@@ -141,7 +162,6 @@ export default function Storefront({
       default: return <LinkIcon className={cls} style={{ color }} />;
     }
   }
-
   function renderLink(l: Link) {
     const style = l.highlight ? featBtn : whiteBtn;
     const iconColor = l.highlight ? onAccent : buttonTextOnWhite;
@@ -152,22 +172,15 @@ export default function Storefront({
         {l.subtitle && <div className="mt-0.5 text-xs opacity-70">{l.subtitle}</div>}
       </>
     );
-    if (l.kind === 'sale') return <button key={l.id} onClick={openAllProducts} className={btnCls} style={style}>{inner}</button>;
+    if (l.kind === 'sale') return <button key={l.id} onClick={openSale} className={btnCls} style={style}>{inner}</button>;
     if (l.kind === 'catalog') return <button key={l.id} onClick={openCatalogRoot} className={btnCls} style={style}>{inner}</button>;
-    const href = l.kind === 'whatsapp'
-      ? `https://wa.me/${(l.url || store.whatsapp).replace(/\D/g, '')}`
-      : l.url || '#';
+    const href = l.kind === 'whatsapp' ? `https://wa.me/${(l.url || store.whatsapp).replace(/\D/g, '')}` : l.url || '#';
     return <a key={l.id} href={href} target="_blank" rel="noreferrer" className={btnCls} style={style}>{inner}</a>;
   }
 
   // ---------- кнопка категории ----------
   const catButton = (c: Category | null, featured = false) => (
-    <button
-      key={c?.id ?? '__all__'}
-      onClick={() => (c ? enter(c) : openAllProducts())}
-      className={btnCls}
-      style={featured ? featBtn : whiteBtn}
-    >
+    <button key={c?.id ?? '__all__'} onClick={() => (c ? enter(c) : openAllProducts())} className={btnCls} style={featured ? featBtn : whiteBtn}>
       {c?.icon ? (
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl leading-none">{c.icon}</span>
       ) : !c ? (
@@ -175,21 +188,14 @@ export default function Storefront({
       ) : null}
       <div className="text-sm font-bold uppercase tracking-wide">{c ? c.name : 'ВСЕ ТОВАРЫ'}</div>
       {c?.subtitle && <div className="mt-0.5 text-xs text-gray-400">{c.subtitle}</div>}
-      {c && childrenOf(c.id).length > 0 && (
-        <ChevronRight className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40" />
-      )}
+      {c && childrenOf(c.id).length > 0 && <ChevronRight className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40" />}
     </button>
   );
 
   const searchBox = () => (
     <div className="relative mt-4">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Поиск по названию"
-        className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 outline-none focus:border-rose-400"
-      />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Поиск по названию" className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 outline-none focus:border-rose-400" />
     </div>
   );
 
@@ -197,22 +203,19 @@ export default function Storefront({
     <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
       {list.map((p) => (
         <div key={p.id} className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <div className="relative aspect-square bg-gray-50">
+          <button onClick={() => setDetail(p)} className="relative aspect-square bg-gray-50">
             {p.image_url ? (
               <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-gray-300">нет фото</div>
             )}
-            {p.badge && (
-              <span className="absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: accent, color: onAccent }}>{p.badge}</span>
-            )}
-          </div>
+            {p.badge && <span className="absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: accent, color: onAccent }}>{p.badge}</span>}
+          </button>
           <div className="flex flex-1 flex-col p-3">
-            <div className="text-sm font-medium leading-tight text-gray-900">{p.name}</div>
-            {p.description && <div className="mt-1 line-clamp-2 text-xs text-gray-400">{p.description}</div>}
+            <button onClick={() => setDetail(p)} className="text-left text-sm font-medium leading-tight text-gray-900 hover:underline">{p.name}</button>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-semibold text-gray-900">{p.price.toLocaleString('ru-RU')} {cur}</span>
-              {p.old_price ? <span className="text-xs text-gray-400 line-through">{p.old_price.toLocaleString('ru-RU')}</span> : null}
+              {p.old_price ? <span className="text-xs text-gray-400 line-through">{Number(p.old_price).toLocaleString('ru-RU')}</span> : null}
             </div>
             <button onClick={() => addToCart(p)} className="mt-3 w-full rounded-lg py-2 text-sm font-semibold transition active:scale-95" style={featBtn}>В корзину</button>
           </div>
@@ -228,18 +231,13 @@ export default function Storefront({
         {store.logo_url ? (
           <img src={store.logo_url} alt={store.name} className={`rounded-full bg-white object-cover shadow-sm ${big ? 'h-24 w-24' : 'h-16 w-16'}`} />
         ) : (
-          <div className={`flex items-center justify-center rounded-full font-bold shadow-sm ${big ? 'h-24 w-24 text-3xl' : 'h-16 w-16 text-xl'}`} style={featBtn}>
-            {store.name.charAt(0)}
-          </div>
+          <div className={`flex items-center justify-center rounded-full font-bold shadow-sm ${big ? 'h-24 w-24 text-3xl' : 'h-16 w-16 text-xl'}`} style={featBtn}>{store.name.charAt(0)}</div>
         )}
       </button>
       {big && (
         <div className={`relative mt-3 flex flex-col items-center ${hasBgImage ? 'rounded-2xl bg-white/75 px-6 py-3 backdrop-blur-sm' : ''}`}>
           <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
           {store.description && <p className="mt-1 max-w-md text-sm text-gray-600">{store.description}</p>}
-          {addrStr && (
-            <div className="mt-2 flex items-center gap-1 text-sm text-gray-600"><MapPin className="h-4 w-4" /> {addrStr}</div>
-          )}
         </div>
       )}
     </div>
@@ -251,36 +249,16 @@ export default function Storefront({
       <main className="min-h-screen pb-28" style={pageStyle}>
         <div className="mx-auto max-w-xl px-4">
           {logoBlock(true)}
-
           <BannerCarousel banners={banners} accent={accent} />
 
-          {/* Промокоды */}
-          {promos.length > 0 && (
-            <div className="mt-6 space-y-2">
-              {promos.map((p) => (
-                <div key={p.id} className="flex items-center gap-3 rounded-xl border p-3" style={{ borderColor: accent + '40', background: accent + '0d' }}>
-                  <Tag className="h-5 w-5 shrink-0" style={{ color: accent }} />
-                  <div className="flex-1 text-sm">
-                    <span className="font-mono font-bold" style={{ color: accent }}>{p.code}</span>
-                    {p.description && <span className="text-gray-600"> — {p.description}</span>}
-                  </div>
-                  {p.discount_percent > 0 && <span className="text-sm font-bold" style={{ color: accent }}>-{p.discount_percent}%</span>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Кнопки */}
           <div className="mt-6 space-y-3">
             <button onClick={openCatalogRoot} className={btnCls} style={featBtn}>
               <ShoppingBag className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2" style={{ color: onAccent }} />
               <div className="text-sm font-bold uppercase tracking-wide">Каталог товаров</div>
             </button>
-
             {links.map(renderLink)}
           </div>
 
-          {/* О нас */}
           {store.about && (
             <div className="mt-3">
               <button onClick={() => setAboutOpen((o) => !o)} className={btnCls} style={whiteBtn}>
@@ -288,20 +266,16 @@ export default function Storefront({
                 <div className="text-sm font-bold uppercase tracking-wide">О нас</div>
                 <ChevronDown className={`absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 transition-transform ${aboutOpen ? 'rotate-180' : ''}`} />
               </button>
-              {aboutOpen && (
-                <div className="mt-2 whitespace-pre-line rounded-2xl bg-white/92 p-4 text-sm text-gray-600 shadow-sm">{store.about}</div>
-              )}
+              {aboutOpen && <div className="mt-2 whitespace-pre-line rounded-2xl bg-white/92 p-4 text-sm text-gray-600 shadow-sm">{store.about}</div>}
             </div>
           )}
 
-          {/* Карта */}
           {store.show_map && addrStr && (
             <div className="mt-3 overflow-hidden rounded-2xl shadow-sm">
               <iframe title="Карта" src={mapSrc} className="h-56 w-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
             </div>
           )}
 
-          {/* Адрес */}
           {addrStr && (
             <a href={mapLink} target="_blank" rel="noreferrer" className={`mt-3 ${btnCls}`} style={whiteBtn}>
               <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2" style={{ color: buttonTextOnWhite }} />
@@ -313,49 +287,51 @@ export default function Storefront({
         </div>
         {cartFloating()}
         {cartDrawer()}
+        {productDetail()}
       </main>
     );
   }
 
   // =================== КАТАЛОГ ===================
+  const headerTitle = showAll ? 'Все товары' : saleView ? 'Акции' : current ? current.name : 'Каталог товаров';
   return (
     <main className="min-h-screen pb-28" style={pageStyle}>
-      {/* Кнопка «На главную» слева */}
-      <button
-        onClick={goLanding}
-        title="На главную"
-        className="fixed left-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md hover:bg-gray-50"
-      >
+      <button onClick={goLanding} title="На главную" className="fixed left-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md hover:bg-gray-50">
         <Home className="h-5 w-5" />
       </button>
 
       <div className="mx-auto max-w-3xl px-4">
         {logoBlock(false, goLanding)}
 
-        {/* Хлебные крошки */}
         <div className="mt-6 flex flex-wrap items-center gap-1 text-sm text-gray-500">
           <button onClick={goLanding} className="flex items-center gap-1 hover:text-gray-800"><Home className="h-3.5 w-3.5" /> Главная</button>
-          <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
-          <button onClick={openCatalogRoot} className={catalogRoot && !showAll ? 'font-medium text-gray-800' : 'hover:text-gray-800'}>Каталог</button>
-          {stack.map((c, i) => (
-            <span key={c.id} className="flex items-center gap-1">
+          {saleView ? (
+            <span className="flex items-center gap-1"><ChevronRight className="h-3.5 w-3.5 text-gray-300" /><span className="font-medium text-gray-800">Акции</span></span>
+          ) : (
+            <>
               <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
-              <button onClick={() => jumpTo(i)} className={i === stack.length - 1 && !showAll ? 'font-medium text-gray-800' : 'hover:text-gray-800'}>{c.name}</button>
-            </span>
-          ))}
-          {showAll && (<span className="flex items-center gap-1"><ChevronRight className="h-3.5 w-3.5 text-gray-300" /><span className="font-medium text-gray-800">Все товары</span></span>)}
+              <button onClick={openCatalogRoot} className={catalogRoot ? 'font-medium text-gray-800' : 'hover:text-gray-800'}>Каталог</button>
+              {stack.map((c, i) => (
+                <span key={c.id} className="flex items-center gap-1">
+                  <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
+                  <button onClick={() => jumpTo(i)} className={i === stack.length - 1 && !showAll ? 'font-medium text-gray-800' : 'hover:text-gray-800'}>{c.name}</button>
+                </span>
+              ))}
+              {showAll && <span className="flex items-center gap-1"><ChevronRight className="h-3.5 w-3.5 text-gray-300" /><span className="font-medium text-gray-800">Все товары</span></span>}
+            </>
+          )}
         </div>
 
         <div className="mt-3 flex items-center gap-3">
           <button onClick={back} className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"><ArrowLeft className="h-4 w-4" /></button>
-          <h2 className="text-lg font-bold text-gray-900">{showAll ? 'Все товары' : current ? current.name : 'Каталог товаров'}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{headerTitle}</h2>
         </div>
 
-        {showAll ? (
+        {showAll || saleView ? (
           <>
             {searchBox()}
             {productGrid(shownProducts)}
-            {shownProducts.length === 0 && <p className="mt-10 text-center text-gray-400">{query ? 'Ничего не найдено.' : 'Пока нет товаров.'}</p>}
+            {shownProducts.length === 0 && <p className="mt-10 text-center text-gray-400">{query ? 'Ничего не найдено.' : saleView ? 'Пока нет товаров по акции.' : 'Пока нет товаров.'}</p>}
           </>
         ) : catalogRoot ? (
           <>
@@ -383,12 +359,57 @@ export default function Storefront({
       </div>
       {cartFloating()}
       {cartDrawer()}
+      {productDetail()}
     </main>
   );
 
+  // ---------- страница товара ----------
+  function productDetail() {
+    if (!detail) return null;
+    const p = detail;
+    return (
+      <div className="fixed inset-0 z-[60] overflow-auto bg-white" style={{ fontFamily: fontStack(store.font_family) }}>
+        <div className="mx-auto max-w-xl pb-24">
+          <button onClick={() => setDetail(null)} className="fixed left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-700 shadow-md hover:bg-gray-50">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="aspect-square w-full bg-gray-50">
+            {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-gray-300">нет фото</div>}
+          </div>
+          <div className="p-5">
+            <h1 className="text-xl font-bold" style={{ color: buttonTextOnWhite }}>{p.name}</h1>
+            <div className="mt-2 flex items-baseline gap-3">
+              <span className="text-2xl font-bold text-gray-900">{p.price.toLocaleString('ru-RU')} {cur}</span>
+              {p.old_price ? <span className="text-base text-gray-400 line-through">{Number(p.old_price).toLocaleString('ru-RU')} {cur}</span> : null}
+            </div>
+            {p.description ? (
+              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.description}</p>
+            ) : (
+              <p className="mt-4 text-sm text-gray-400">Описание не добавлено.</p>
+            )}
+          </div>
+        </div>
+
+        {/* нижняя панель */}
+        <div className="fixed inset-x-0 bottom-0 z-10 flex items-center gap-3 border-t border-gray-100 bg-white px-4 py-3">
+          <button onClick={() => setDetail(null)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50" title="К каталогу">
+            <LayoutGrid className="h-5 w-5" />
+          </button>
+          <button onClick={() => addFromDetail(p)} className="flex-1 rounded-xl py-3 font-semibold transition active:scale-[.99]" style={featBtn}>
+            {justAdded ? 'Добавлено ✓' : 'Добавить в корзину'}
+          </button>
+          <button onClick={() => { setDetail(null); setCartOpen(true); }} className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50" title="Корзина">
+            <ShoppingBag className="h-5 w-5" />
+            {totalQty > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold" style={featBtn}>{totalQty}</span>}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ---------- корзина ----------
   function cartFloating() {
-    if (totalQty === 0) return null;
+    if (totalQty === 0 || detail) return null;
     return (
       <button onClick={() => setCartOpen(true)} className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full px-6 py-3 font-semibold shadow-xl" style={featBtn}>
         <ShoppingBag className="h-5 w-5" /> Корзина · {totalQty} · {totalSum.toLocaleString('ru-RU')} {cur}
@@ -398,7 +419,7 @@ export default function Storefront({
   function cartDrawer() {
     if (!cartOpen) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setCartOpen(false)}>
+      <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setCartOpen(false)}>
         <div className="max-h-[85vh] w-full max-w-md overflow-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold">Ваш заказ</h2>
