@@ -1,10 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
 import type { Product, Category } from '@/lib/types';
+
+function orderedTree(cats: Category[]): { cat: Category; depth: number }[] {
+  const byParent = new Map<string | null, Category[]>();
+  for (const c of cats) {
+    const key = c.parent_id ?? null;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key)!.push(c);
+  }
+  for (const arr of byParent.values()) arr.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+  const out: { cat: Category; depth: number }[] = [];
+  const walk = (pid: string | null, depth: number) => {
+    for (const c of byParent.get(pid) ?? []) { out.push({ cat: c, depth }); walk(c.id, depth + 1); }
+  };
+  walk(null, 0);
+  return out;
+}
 
 type Draft = {
   id?: string;
@@ -39,6 +55,8 @@ export default function ProductsManager({
   const [draft, setDraft] = useState<Draft | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const orderedCats = useMemo(() => orderedTree(categories), [categories]);
 
   function openNew() { setDraft({ ...empty }); }
   function openEdit(p: Product) {
@@ -168,7 +186,9 @@ export default function ProductsManager({
               <div className="grid grid-cols-2 gap-3">
                 <select className={input} value={draft.category_id} onChange={(e) => setDraft({ ...draft, category_id: e.target.value })}>
                   <option value="">Без категории</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {orderedCats.map(({ cat, depth }) => (
+                    <option key={cat.id} value={cat.id}>{' '.repeat(depth * 3)}{depth > 0 ? '└ ' : ''}{cat.name}</option>
+                  ))}
                 </select>
                 <input className={input} placeholder="Бейдж (ХИТ, АКЦИЯ)" value={draft.badge} onChange={(e) => setDraft({ ...draft, badge: e.target.value })} />
               </div>

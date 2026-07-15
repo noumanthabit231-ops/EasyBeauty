@@ -32,6 +32,7 @@ export interface Store {
 export interface Category {
   id: string;
   store_id: string;
+  parent_id: string | null;
   name: string;
   subtitle: string;
   icon: string;

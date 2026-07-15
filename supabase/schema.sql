@@ -50,6 +50,7 @@ create index if not exists idx_stores_owner on public.stores(owner_id);
 create table if not exists public.categories (
   id uuid primary key default uuid_generate_v4(),
   store_id uuid not null references public.stores(id) on delete cascade,
+  parent_id uuid references public.categories(id) on delete cascade,  -- вложенность (дерево)
   name text not null,
   subtitle text default '',                   -- подзаголовок (список подкатегорий)
   icon text default '',                        -- эмодзи-иконка слева
@@ -58,6 +59,7 @@ create table if not exists public.categories (
 );
 
 create index if not exists idx_categories_store on public.categories(store_id);
+create index if not exists idx_categories_parent on public.categories(parent_id);
 
 -- ----------------------------------------------------------------------------
 -- 4. products — товары / услуги
