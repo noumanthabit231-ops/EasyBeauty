@@ -36,6 +36,8 @@ create table if not exists public.stores (
   font_family text default 'inter',            -- шрифт витрины
   bg_color text default '',                     -- цвет фона (пусто = по умолчанию)
   bg_image_url text default '',                 -- картинка-фон витрины
+  about text default '',                         -- блок «О нас» на главной
+  show_map boolean not null default true,        -- показывать карту на главной
   is_active boolean not null default true,    -- витрина видна публично
   -- Подписка (управляется супер-админом вручную)
   subscription_status text not null default 'trial',  -- 'trial' | 'active' | 'expired'
@@ -101,6 +103,35 @@ create table if not exists public.promos (
 create index if not exists idx_promos_store on public.promos(store_id);
 
 -- ----------------------------------------------------------------------------
+-- 6. banners — баннеры-карусель на главной
+-- ----------------------------------------------------------------------------
+create table if not exists public.banners (
+  id uuid primary key default uuid_generate_v4(),
+  store_id uuid not null references public.stores(id) on delete cascade,
+  image_url text not null,
+  link_url text default '',
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_banners_store on public.banners(store_id);
+
+-- ----------------------------------------------------------------------------
+-- 7. links — кнопки-ссылки на главной (соцсети, SALE, лояльность, свои ссылки)
+-- ----------------------------------------------------------------------------
+create table if not exists public.links (
+  id uuid primary key default uuid_generate_v4(),
+  store_id uuid not null references public.stores(id) on delete cascade,
+  kind text not null default 'custom',
+  title text not null,
+  subtitle text default '',
+  url text default '',
+  highlight boolean not null default false,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_links_store on public.links(store_id);
+
+-- ----------------------------------------------------------------------------
 --  Триггер: авто-создание profile при регистрации пользователя
 -- ----------------------------------------------------------------------------
 create or replace function public.handle_new_user()
@@ -143,6 +174,8 @@ alter table public.stores     enable row level security;
 alter table public.categories enable row level security;
 alter table public.products   enable row level security;
 alter table public.promos     enable row level security;
+alter table public.banners    enable row level security;
+alter table public.links      enable row level security;
 
 -- ---- profiles ----
 drop policy if exists "profiles self read" on public.profiles;
@@ -217,6 +250,30 @@ create policy "promos owner write" on public.promos
   ) with check (
     exists (select 1 from public.stores s where s.id = store_id
             and (s.owner_id = auth.uid() or public.is_super_admin()))
+  );
+
+-- banners
+drop policy if exists "banners public read" on public.banners;
+create policy "banners public read" on public.banners for select using (true);
+
+drop policy if exists "banners owner write" on public.banners;
+create policy "banners owner write" on public.banners
+  for all using (
+    exists (select 1 from public.stores s where s.id = store_id and (s.owner_id = auth.uid() or public.is_super_admin()))
+  ) with check (
+    exists (select 1 from public.stores s where s.id = store_id and (s.owner_id = auth.uid() or public.is_super_admin()))
+  );
+
+-- links
+drop policy if exists "links public read" on public.links;
+create policy "links public read" on public.links for select using (true);
+
+drop policy if exists "links owner write" on public.links;
+create policy "links owner write" on public.links
+  for all using (
+    exists (select 1 from public.stores s where s.id = store_id and (s.owner_id = auth.uid() or public.is_super_admin()))
+  ) with check (
+    exists (select 1 from public.stores s where s.id = store_id and (s.owner_id = auth.uid() or public.is_super_admin()))
   );
 
 -- ============================================================================

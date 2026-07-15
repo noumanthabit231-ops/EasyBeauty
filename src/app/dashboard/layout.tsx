@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { LayoutDashboard, Settings, LayoutGrid, Package, Tag, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Settings, LayoutGrid, Package, Tag, ExternalLink, Home } from 'lucide-react';
 import { getSessionUser, getOwnerStore, getProfile } from '@/lib/auth';
 import LogoutButton from '@/components/LogoutButton';
 
 const navItems = [
   { href: '/dashboard', label: 'Обзор', icon: LayoutDashboard },
+  { href: '/dashboard/homepage', label: 'Главная страница', icon: Home },
   { href: '/dashboard/products', label: 'Товары', icon: Package },
   { href: '/dashboard/categories', label: 'Категории', icon: LayoutGrid },
   { href: '/dashboard/promos', label: 'Акции и промокоды', icon: Tag },

@@ -25,6 +25,8 @@ export interface Store {
   font_family: string;
   bg_color: string;
   bg_image_url: string;
+  about: string;
+  show_map: boolean;
   is_active: boolean;
   subscription_status: SubStatus;
   subscription_expires_at: string | null;
@@ -65,6 +67,31 @@ export interface Promo {
   description: string;
   discount_percent: number;
   is_active: boolean;
+  created_at: string;
+}
+
+export interface Banner {
+  id: string;
+  store_id: string;
+  image_url: string;
+  link_url: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export type LinkKind =
+  | 'whatsapp' | 'instagram' | 'tiktok' | 'telegram'
+  | 'sale' | 'catalog' | 'loyalty' | 'wholesale' | 'custom';
+
+export interface Link {
+  id: string;
+  store_id: string;
+  kind: LinkKind;
+  title: string;
+  subtitle: string;
+  url: string;
+  highlight: boolean;
+  sort_order: number;
   created_at: string;
 }
 

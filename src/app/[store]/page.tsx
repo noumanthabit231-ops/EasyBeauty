@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { isSubscriptionActive } from '@/lib/auth';
 import Storefront from '@/components/Storefront';
-import type { Store, Category, Product, Promo } from '@/lib/types';
+import type { Store, Category, Product, Promo, Banner, Link } from '@/lib/types';
 
 export const revalidate = 30;
 
@@ -41,11 +41,14 @@ export default async function StorePage({ params }: { params: { store: string } 
     );
   }
 
-  const [{ data: categories }, { data: products }, { data: promos }] = await Promise.all([
-    supabase.from('categories').select('*').eq('store_id', store.id).order('sort_order'),
-    supabase.from('products').select('*').eq('store_id', store.id).eq('is_available', true).order('sort_order'),
-    supabase.from('promos').select('*').eq('store_id', store.id).eq('is_active', true).order('created_at', { ascending: false }),
-  ]);
+  const [{ data: categories }, { data: products }, { data: promos }, { data: banners }, { data: links }] =
+    await Promise.all([
+      supabase.from('categories').select('*').eq('store_id', store.id).order('sort_order'),
+      supabase.from('products').select('*').eq('store_id', store.id).eq('is_available', true).order('sort_order'),
+      supabase.from('promos').select('*').eq('store_id', store.id).eq('is_active', true).order('created_at', { ascending: false }),
+      supabase.from('banners').select('*').eq('store_id', store.id).order('sort_order'),
+      supabase.from('links').select('*').eq('store_id', store.id).order('sort_order'),
+    ]);
 
   return (
     <Storefront
@@ -53,6 +56,8 @@ export default async function StorePage({ params }: { params: { store: string } 
       categories={(categories as Category[]) || []}
       products={(products as Product[]) || []}
       promos={(promos as Promo[]) || []}
+      banners={(banners as Banner[]) || []}
+      links={(links as Link[]) || []}
     />
   );
 }
