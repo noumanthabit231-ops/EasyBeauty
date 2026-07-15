@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { ShoppingBag, Plus, Minus, X, MapPin, Tag, ArrowLeft, Search, ChevronRight, Home } from 'lucide-react';
+import { fontStack } from '@/lib/theme';
 import type { Store, Category, Product, Promo, CartItem } from '@/lib/types';
 
 export default function Storefront({
@@ -24,6 +25,17 @@ export default function Storefront({
   const accent = store.button_color || '#7a1220';
   const onAccent = store.text_on_button || '#ffffff';
   const cur = store.currency || '₸';
+
+  const hasBgImage = !!store.bg_image_url;
+  const pageStyle: CSSProperties = { fontFamily: fontStack(store.font_family) };
+  if (hasBgImage) {
+    pageStyle.backgroundImage = `url(${store.bg_image_url})`;
+    pageStyle.backgroundSize = 'cover';
+    pageStyle.backgroundPosition = 'center';
+    pageStyle.backgroundAttachment = 'fixed';
+  } else {
+    pageStyle.backgroundColor = store.bg_color || '#f9fafb';
+  }
 
   const current = stack[stack.length - 1] ?? null;
   const isHome = stack.length === 0 && !showAll;
@@ -82,8 +94,12 @@ export default function Storefront({
     <button
       key={c?.id ?? '__all__'}
       onClick={() => (c ? enter(c) : (setShowAll(true), setQuery('')))}
-      className="relative block w-full rounded-2xl px-12 py-4 text-center transition active:scale-[.99]"
-      style={featured ? { background: accent, color: onAccent } : { background: accent + '0f', color: '#3f1d22' }}
+      className="relative block w-full rounded-2xl px-12 py-4 text-center shadow-sm transition active:scale-[.99]"
+      style={
+        featured
+          ? { background: accent, color: onAccent }
+          : { background: 'rgba(255,255,255,0.92)', color: accent, border: '1px solid rgba(0,0,0,0.05)' }
+      }
     >
       {c?.icon ? (
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl leading-none">{c.icon}</span>
@@ -165,7 +181,7 @@ export default function Storefront({
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-28">
+    <main className="min-h-screen pb-28" style={pageStyle}>
       <div className={`mx-auto px-4 ${isHome ? 'max-w-xl' : 'max-w-3xl'}`}>
         {/* Логотип */}
         <div className="relative flex flex-col items-center pt-8 text-center">
@@ -178,15 +194,15 @@ export default function Storefront({
             </div>
           )}
           {isHome && (
-            <>
-              <h1 className="relative mt-3 text-2xl font-bold text-gray-900">{store.name}</h1>
-              {store.description && <p className="relative mt-1 max-w-md text-sm text-gray-500">{store.description}</p>}
+            <div className={`relative mt-3 flex flex-col items-center ${hasBgImage ? 'rounded-2xl bg-white/75 px-6 py-3 backdrop-blur-sm' : ''}`}>
+              <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
+              {store.description && <p className="mt-1 max-w-md text-sm text-gray-600">{store.description}</p>}
               {(store.city || store.address) && (
-                <div className="relative mt-2 flex items-center gap-1 text-sm text-gray-500">
+                <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
                   <MapPin className="h-4 w-4" /> {[store.city, store.address].filter(Boolean).join(', ')}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
+import { FONTS, fontStack } from '@/lib/theme';
 import type { Store } from '@/lib/types';
 
 const CURRENCIES = ['₸', '₽', '$', '€', '£', '₴', 'сум', 'сом'];
@@ -26,6 +27,9 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     currency: store.currency || '₸',
     button_color: store.button_color || '#7a1220',
     text_on_button: store.text_on_button || '#ffffff',
+    font_family: store.font_family || 'inter',
+    bg_color: store.bg_color || '',
+    bg_image_url: store.bg_image_url || '',
     is_active: store.is_active,
     logo_url: store.logo_url || '',
     cover_url: store.cover_url || '',
@@ -38,7 +42,7 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  async function handleUpload(field: 'logo_url' | 'cover_url', file?: File) {
+  async function handleUpload(field: 'logo_url' | 'cover_url' | 'bg_image_url', file?: File) {
     if (!file) return;
     try {
       const url = await uploadImage(file, store.id);
@@ -144,14 +148,68 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             </div>
           </div>
           <div>
-            <label className={label}>Логотип</label>
-            {form.logo_url && <img src={form.logo_url} alt="" className="mb-2 h-16 w-16 rounded-full object-cover" />}
+            <label className={label}>Аватар (логотип)</label>
+            {form.logo_url ? (
+              <img src={form.logo_url} alt="" className="mb-2 h-16 w-16 rounded-full object-cover" />
+            ) : (
+              <p className="mb-2 text-xs text-gray-400">Пока не загружен — на витрине показывается буква названия.</p>
+            )}
             <input type="file" accept="image/*" onChange={(e) => handleUpload('logo_url', e.target.files?.[0])} />
           </div>
           <div>
-            <label className={label}>Обложка (баннер)</label>
+            <label className={label}>Обложка (баннер над каталогом)</label>
             {form.cover_url && <img src={form.cover_url} alt="" className="mb-2 h-16 w-full rounded object-cover" />}
             <input type="file" accept="image/*" onChange={(e) => handleUpload('cover_url', e.target.files?.[0])} />
+          </div>
+        </div>
+      </section>
+
+      {/* Шрифт и фон */}
+      <section className="rounded-xl border border-gray-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold">Шрифт и фон</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={label}>Шрифт витрины</label>
+            <select className={input} value={form.font_family} onChange={(e) => set('font_family', e.target.value)}>
+              {FONTS.map((f) => (
+                <option key={f.key} value={f.key}>{f.label}</option>
+              ))}
+            </select>
+            <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-lg" style={{ fontFamily: fontStack(form.font_family) }}>
+              {form.name || 'Пример текста'} — 12 500 ₸
+            </div>
+          </div>
+
+          <div>
+            <label className={label}>Цвет фона</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={form.bg_color || '#f9fafb'}
+                onChange={(e) => set('bg_color', e.target.value)}
+                className="h-10 w-14 rounded border"
+              />
+              <input className={input} value={form.bg_color} placeholder="по умолчанию" onChange={(e) => set('bg_color', e.target.value)} />
+              {form.bg_color && (
+                <button type="button" onClick={() => set('bg_color', '')} className="whitespace-nowrap text-sm text-gray-400 hover:text-gray-700">
+                  сбросить
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className={label}>Фоновая картинка</label>
+            {form.bg_image_url && (
+              <div className="mb-2 flex items-center gap-3">
+                <img src={form.bg_image_url} alt="" className="h-20 w-32 rounded object-cover" />
+                <button type="button" onClick={() => set('bg_image_url', '')} className="text-sm text-gray-400 hover:text-red-600">
+                  убрать фон
+                </button>
+              </div>
+            )}
+            <input type="file" accept="image/*" onChange={(e) => handleUpload('bg_image_url', e.target.files?.[0])} />
+            <p className="mt-1 text-xs text-gray-400">Если загружена картинка — она важнее цвета фона. Товары показываются на белых карточках поверх фона.</p>
           </div>
         </div>
       </section>

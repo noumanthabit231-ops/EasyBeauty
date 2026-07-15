@@ -33,6 +33,9 @@ create table if not exists public.stores (
   cover_url text default '',
   button_color text default '#7a1220',        -- цвет кнопок/акцента
   text_on_button text default '#ffffff',
+  font_family text default 'inter',            -- шрифт витрины
+  bg_color text default '',                     -- цвет фона (пусто = по умолчанию)
+  bg_image_url text default '',                 -- картинка-фон витрины
   is_active boolean not null default true,    -- витрина видна публично
   -- Подписка (управляется супер-админом вручную)
   subscription_status text not null default 'trial',  -- 'trial' | 'active' | 'expired'

@@ -22,6 +22,9 @@ export interface Store {
   cover_url: string;
   button_color: string;
   text_on_button: string;
+  font_family: string;
+  bg_color: string;
+  bg_image_url: string;
   is_active: boolean;
   subscription_status: SubStatus;
   subscription_expires_at: string | null;
