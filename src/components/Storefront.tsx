@@ -283,7 +283,7 @@ export default function Storefront({
             </a>
           )}
 
-          <footer className="mt-12 pb-6 text-center text-xs text-gray-300">Работает на Beauty Links</footer>
+          <footer className="mt-12 pb-6 text-center text-xs text-gray-300">Работает на BeautyTap</footer>
         </div>
         {cartFloating()}
         {cartDrawer()}
@@ -355,7 +355,7 @@ export default function Storefront({
           </>
         )}
 
-        <footer className="mt-12 pb-6 text-center text-xs text-gray-300">Работает на Beauty Links</footer>
+        <footer className="mt-12 pb-6 text-center text-xs text-gray-300">Работает на BeautyTap</footer>
       </div>
       {cartFloating()}
       {cartDrawer()}

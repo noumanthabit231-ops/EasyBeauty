@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Sidebar */}
       <aside className="flex w-64 flex-col border-r border-gray-200 bg-white">
         <div className="border-b border-gray-100 p-5">
-          <div className="text-lg font-bold text-rose-900">Beauty Links</div>
+          <div className="text-lg font-bold text-rose-900">BeautyTap</div>
           <div className="mt-1 truncate text-xs text-gray-400">{user.email}</div>
         </div>
 

@@ -6,7 +6,7 @@ export default function LandingPage() {
     <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
       {/* Header */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <div className="text-2xl font-bold tracking-tight text-rose-900">Beauty Links</div>
+        <div className="text-2xl font-bold tracking-tight text-rose-900">BeautyTap</div>
         <nav className="flex items-center gap-3">
           <Link href="/login" className="rounded-lg px-4 py-2 text-sm font-medium text-rose-900 hover:bg-rose-100">
             Войти
@@ -57,7 +57,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-rose-100 py-8 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Beauty Links. Все права защищены.
+        © {new Date().getFullYear()} BeautyTap. Все права защищены.
       </footer>
     </main>
   );

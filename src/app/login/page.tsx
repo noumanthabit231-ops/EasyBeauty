@@ -33,7 +33,7 @@ function LoginForm() {
     <main className="flex min-h-screen items-center justify-center bg-rose-50 px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
         <Link href="/" className="mb-6 block text-center text-2xl font-bold text-rose-900">
-          Beauty Links
+          BeautyTap
         </Link>
         <h1 className="mb-6 text-center text-xl font-semibold text-gray-800">Вход в кабинет</h1>
         <form onSubmit={handleSubmit} className="space-y-4">

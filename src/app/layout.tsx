@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Beauty Links — витрина для косметических магазинов',
+  title: 'BeautyTap — витрина для косметических магазинов',
   description:
     'Создайте страницу вашего магазина косметики за 5 минут: товары, категории, акции, промокоды и заказы через WhatsApp.',
 };

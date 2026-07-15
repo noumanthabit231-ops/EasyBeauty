@@ -27,7 +27,7 @@ export default async function AdminPage() {
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div>
-            <div className="text-lg font-bold text-rose-900">Beauty Links · Супер-админ</div>
+            <div className="text-lg font-bold text-rose-900">BeautyTap · Супер-админ</div>
             <div className="text-xs text-gray-400">{profile.email}</div>
           </div>
           <div className="flex items-center gap-4">
