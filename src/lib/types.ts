@@ -33,6 +33,8 @@ export interface Category {
   id: string;
   store_id: string;
   name: string;
+  subtitle: string;
+  icon: string;
   sort_order: number;
   created_at: string;
 }

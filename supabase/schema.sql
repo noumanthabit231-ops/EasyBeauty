@@ -51,6 +51,8 @@ create table if not exists public.categories (
   id uuid primary key default uuid_generate_v4(),
   store_id uuid not null references public.stores(id) on delete cascade,
   name text not null,
+  subtitle text default '',                   -- подзаголовок (список подкатегорий)
+  icon text default '',                        -- эмодзи-иконка слева
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
