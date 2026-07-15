@@ -5,6 +5,25 @@ import { ShoppingBag, Plus, Minus, X, MapPin, Tag, ArrowLeft, Search, ChevronRig
 import { fontStack } from '@/lib/theme';
 import type { Store, Category, Product, Promo, CartItem } from '@/lib/types';
 
+// относительная яркость цвета (0 — чёрный, 1 — белый)
+function luminance(hex: string): number {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return 1;
+  const toLin = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  const r = toLin(parseInt(h.slice(0, 2), 16) / 255);
+  const g = toLin(parseInt(h.slice(2, 4), 16) / 255);
+  const b = toLin(parseInt(h.slice(4, 6), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+// читаемый тёмный цвет для текста на светлом фоне (белые кнопки)
+function readableDark(...colors: string[]): string {
+  const dark = colors
+    .filter((c) => c && c.startsWith('#'))
+    .sort((a, b) => luminance(a) - luminance(b))[0];
+  return dark && luminance(dark) < 0.55 ? dark : '#3f1d22';
+}
+
 export default function Storefront({
   store,
   categories,
@@ -25,6 +44,8 @@ export default function Storefront({
   const accent = store.button_color || '#7a1220';
   const onAccent = store.text_on_button || '#ffffff';
   const cur = store.currency || '₸';
+  // цвет текста на белых кнопках-категориях (читаемый на любом фоне)
+  const buttonTextOnWhite = readableDark(accent, onAccent);
 
   const hasBgImage = !!store.bg_image_url;
   const pageStyle: CSSProperties = { fontFamily: fontStack(store.font_family) };
@@ -98,7 +119,7 @@ export default function Storefront({
       style={
         featured
           ? { background: accent, color: onAccent }
-          : { background: 'rgba(255,255,255,0.92)', color: accent, border: '1px solid rgba(0,0,0,0.05)' }
+          : { background: 'rgba(255,255,255,0.92)', color: buttonTextOnWhite, border: '1px solid rgba(0,0,0,0.05)' }
       }
     >
       {c?.icon ? (
