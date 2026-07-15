@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { activateSubscription, expireSubscription, toggleStoreActive } from '@/app/admin/actions';
+import { storeUrl, storeDisplayUrl } from '@/lib/urls';
 import type { Store } from '@/lib/types';
 
 function StatusBadge({ store }: { store: Store }) {
@@ -54,8 +55,8 @@ export default function AdminStores({ stores }: { stores: Store[] }) {
               <tr key={s.id} className="border-b border-gray-50 last:border-0">
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">{s.name}</div>
-                  <a href={`/${s.slug}`} target="_blank" className="inline-flex items-center gap-1 text-xs text-rose-600 hover:underline">
-                    /{s.slug} <ExternalLink className="h-3 w-3" />
+                  <a href={storeUrl(s.slug)} target="_blank" className="inline-flex items-center gap-1 text-xs text-rose-600 hover:underline">
+                    {storeDisplayUrl(s.slug)} <ExternalLink className="h-3 w-3" />
                   </a>
                 </td>
                 <td className="px-4 py-3"><StatusBadge store={s} /></td>

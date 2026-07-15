@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { LayoutDashboard, Settings, LayoutGrid, Package, ExternalLink, Home } from 'lucide-react';
 import { getSessionUser, getOwnerStore, getProfile } from '@/lib/auth';
+import { storeUrl } from '@/lib/urls';
 import LogoutButton from '@/components/LogoutButton';
 
 const navItems = [
@@ -50,7 +51,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
           {store && (
             <a
-              href={`/${store.slug}`}
+              href={storeUrl(store.slug)}
               target="_blank"
               className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
             >

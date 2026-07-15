@@ -5,6 +5,7 @@ import { getSessionUser, getOwnerStore, isSubscriptionActive } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server';
 import Onboarding from '@/components/Onboarding';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
+import { storeUrl, storeDisplayUrl } from '@/lib/urls';
 
 export default async function DashboardHome() {
   const user = await getSessionUser();
@@ -39,10 +40,10 @@ export default async function DashboardHome() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm text-gray-500">Адрес витрины</div>
-            <div className="font-medium text-rose-900">/{store.slug}</div>
+            <div className="font-medium text-rose-900">{storeDisplayUrl(store.slug)}</div>
           </div>
           <a
-            href={`/${store.slug}`}
+            href={storeUrl(store.slug)}
             target="_blank"
             className="inline-flex items-center gap-2 rounded-lg bg-rose-900 px-4 py-2 text-sm font-medium text-white hover:bg-rose-800"
           >
