@@ -34,7 +34,6 @@ export default function LandingPage() {
             У меня уже есть аккаунт
           </Link>
         </div>
-        <p className="mt-4 text-sm text-gray-400">14 дней бесплатно · далее по подписке</p>
       </section>
 
       {/* Features */}
