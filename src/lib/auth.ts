@@ -2,14 +2,17 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Store, Profile } from '@/lib/types';
 
-// cache() дедуплицирует вызовы в рамках одного серверного рендера,
-// поэтому layout + страница не бьют по Supabase повторно.
+// cache() дедуплицирует вызовы в рамках одного серверного рендера.
+// Используем getSession() (читает JWT из cookie, без сетевой проверки) —
+// подлинность пользователя уже проверил middleware через getUser(),
+// а доступ к данным дополнительно ограничен RLS. Это убирает лишний
+// сетевой round-trip к Supabase Auth на каждую навигацию.
 export const getSessionUser = cache(async () => {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user ?? null;
 });
 
 export const getProfile = cache(async (): Promise<Profile | null> => {
