@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Trash2, Upload } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { uploadImage } from '@/lib/upload';
+import { uploadImage, deleteImage } from '@/lib/upload';
 import type { Banner } from '@/lib/types';
 
 export default function BannersManager({ storeId, initial }: { storeId: string; initial: Banner[] }) {
@@ -37,8 +37,10 @@ export default function BannersManager({ storeId, initial }: { storeId: string; 
 
   async function remove(id: string) {
     if (!confirm('Удалить баннер?')) return;
+    const img = items.find((b) => b.id === id)?.image_url;
     await supabase.from('banners').delete().eq('id', id);
     setItems((a) => a.filter((b) => b.id !== id));
+    await deleteImage(img);
   }
 
   return (

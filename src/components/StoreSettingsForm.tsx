@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { uploadImage } from '@/lib/upload';
+import { uploadImage, deleteImage } from '@/lib/upload';
 import { FONTS, fontStack } from '@/lib/theme';
 import type { Store } from '@/lib/types';
 
@@ -40,14 +40,32 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  async function handleUpload(field: 'logo_url' | 'cover_url' | 'bg_image_url', file?: File) {
+  type ImageField = 'logo_url' | 'cover_url' | 'bg_image_url';
+
+  async function handleUpload(field: ImageField, file?: File) {
     if (!file) return;
+    setErr('');
     try {
+      const old = form[field];
       const url = await uploadImage(file, store.id);
+      // сразу сохраняем поле и удаляем старый файл из бакета
+      await supabase.from('stores').update({ [field]: url }).eq('id', store.id);
       set(field, url);
+      if (old && old !== url) await deleteImage(old);
+      router.refresh();
     } catch (e: any) {
       setErr('Ошибка загрузки: ' + e.message);
     }
+  }
+
+  async function removeImage(field: ImageField) {
+    const old = form[field];
+    if (!old) { set(field, ''); return; }
+    if (!confirm('Удалить это изображение?')) return;
+    set(field, '');
+    await supabase.from('stores').update({ [field]: '' }).eq('id', store.id);
+    await deleteImage(old);
+    router.refresh();
   }
 
   async function save(e: React.FormEvent) {
@@ -141,7 +159,12 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
           <div>
             <label className={label}>Аватар (логотип)</label>
             {form.logo_url ? (
-              <img src={form.logo_url} alt="" className="mb-2 h-16 w-16 rounded-full object-cover" />
+              <div className="mb-2 flex items-center gap-3">
+                <img src={form.logo_url} alt="" className="h-16 w-16 rounded-full object-cover" />
+                <button type="button" onClick={() => removeImage('logo_url')} className="text-sm text-gray-400 hover:text-red-600">
+                  Удалить
+                </button>
+              </div>
             ) : (
               <p className="mb-2 text-xs text-gray-400">Пока не загружен — на витрине показывается буква названия.</p>
             )}
@@ -149,7 +172,14 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
           </div>
           <div>
             <label className={label}>Обложка (баннер над каталогом)</label>
-            {form.cover_url && <img src={form.cover_url} alt="" className="mb-2 h-16 w-full rounded object-cover" />}
+            {form.cover_url && (
+              <div className="mb-2 flex items-center gap-3">
+                <img src={form.cover_url} alt="" className="h-16 w-full max-w-[200px] rounded object-cover" />
+                <button type="button" onClick={() => removeImage('cover_url')} className="text-sm text-gray-400 hover:text-red-600">
+                  Удалить
+                </button>
+              </div>
+            )}
             <input type="file" accept="image/*" onChange={(e) => handleUpload('cover_url', e.target.files?.[0])} />
           </div>
         </div>
@@ -194,8 +224,8 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             {form.bg_image_url && (
               <div className="mb-2 flex items-center gap-3">
                 <img src={form.bg_image_url} alt="" className="h-20 w-32 rounded object-cover" />
-                <button type="button" onClick={() => set('bg_image_url', '')} className="text-sm text-gray-400 hover:text-red-600">
-                  убрать фон
+                <button type="button" onClick={() => removeImage('bg_image_url')} className="text-sm text-gray-400 hover:text-red-600">
+                  Удалить фон
                 </button>
               </div>
             )}

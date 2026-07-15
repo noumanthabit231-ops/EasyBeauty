@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { uploadImage } from '@/lib/upload';
+import { uploadImage, deleteImage } from '@/lib/upload';
 import type { Product, Category } from '@/lib/types';
 
 function orderedTree(cats: Category[]): { cat: Category; depth: number }[] {
@@ -110,8 +110,10 @@ export default function ProductsManager({
 
   async function remove(id: string) {
     if (!confirm('Удалить товар?')) return;
+    const img = items.find((p) => p.id === id)?.image_url;
     await supabase.from('products').delete().eq('id', id);
     setItems((arr) => arr.filter((p) => p.id !== id));
+    await deleteImage(img);
   }
 
   const catName = (id: string | null) => categories.find((c) => c.id === id)?.name || '—';
