@@ -73,8 +73,7 @@ export default function RegisterPage() {
         <Link href="/" className="mb-6 block text-center text-2xl font-bold text-rose-900">
           Beauty Links
         </Link>
-        <h1 className="mb-1 text-center text-xl font-semibold text-gray-800">Создать магазин</h1>
-        <p className="mb-6 text-center text-sm text-gray-500">14 дней бесплатно</p>
+        <h1 className="mb-6 text-center text-xl font-semibold text-gray-800">Создать магазин</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email" required placeholder="Email" value={email}
