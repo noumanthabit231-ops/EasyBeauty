@@ -6,6 +6,7 @@ import {
   Home, Instagram, Music2, Send, Percent, Gift, Package, Link as LinkIcon, Info, LayoutGrid,
 } from 'lucide-react';
 import { fontStack } from '@/lib/theme';
+import { createClient } from '@/lib/supabase/client';
 import BannerCarousel from '@/components/BannerCarousel';
 import type { Store, Category, Product, Banner, Link, LinkKind, CartItem } from '@/lib/types';
 
@@ -140,6 +141,19 @@ export default function Storefront({
       return { ...c, [id]: { ...item, qty } };
     });
   }
+  /** Фиксируем заказ для аналитики владельца. Цены и суммы считает сервер. */
+  async function recordOrder(items: CartItem[]) {
+    try {
+      const supabase = createClient();
+      await supabase.rpc('create_order', {
+        p_store_id: store.id,
+        p_items: items.map((i) => ({ product_id: i.product.id, qty: i.qty })),
+      });
+    } catch {
+      // аналитика не должна мешать оформлению заказа
+    }
+  }
+
   function checkout() {
     if (!whatsapp) { alert('Магазин не указал номер WhatsApp.'); return; }
     const lines = cartItems.map(
@@ -149,7 +163,18 @@ export default function Storefront({
       `Здравствуйте! Хочу оформить заказ в ${store.name}\n\n` +
       lines.join('\n') +
       `\n\nИтого: ${totalSum.toLocaleString('ru-RU')} ${cur}`;
+
+    // Открываем WhatsApp синхронно, прямо в обработчике клика,
+    // иначе браузер заблокирует всплывающее окно.
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+
+    // Заказ пишем фоном — если не запишется, оформление всё равно пройдёт.
+    void recordOrder(cartItems);
+
+    // Очищаем корзину: иначе повторный клик по «Оформить заказ»
+    // запишет тот же заказ второй раз и исказит аналитику.
+    setCart({});
+    setCartOpen(false);
   }
 
   // ---------- ссылки ----------

@@ -95,6 +95,25 @@ export interface Link {
   created_at: string;
 }
 
+export interface Order {
+  id: string;
+  store_id: string;
+  total: number;
+  items_count: number;
+  created_at: string;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  store_id: string;
+  product_id: string | null;
+  product_name: string;
+  price: number;
+  qty: number;
+  created_at: string;
+}
+
 export interface CartItem {
   product: Product;
   qty: number;

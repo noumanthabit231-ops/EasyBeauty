@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Home, Package, LayoutGrid, Settings, ExternalLink, Shield } from 'lucide-react';
+import { LayoutDashboard, Home, Package, LayoutGrid, Settings, ExternalLink, Shield, BarChart3 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', label: 'Обзор', icon: LayoutDashboard },
+  { href: '/dashboard/analytics', label: 'Аналитика', icon: BarChart3 },
   { href: '/dashboard/homepage', label: 'Главная страница', icon: Home },
   { href: '/dashboard/products', label: 'Товары', icon: Package },
   { href: '/dashboard/categories', label: 'Категории', icon: LayoutGrid },
