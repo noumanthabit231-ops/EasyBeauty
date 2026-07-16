@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { getOwnerStore } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import Analytics, { type OrderRow, type ItemRow } from '@/components/Analytics';
+import OrdersManager from '@/components/OrdersManager';
+import type { Product } from '@/lib/types';
 
 const PERIODS = [
   { key: '7', label: '7 дней' },
@@ -34,8 +36,9 @@ export default async function AnalyticsPage({
 
   let itemsQuery = supabase
     .from('order_items')
-    .select('product_name, qty, price, created_at')
+    .select('id, order_id, product_name, qty, price, created_at')
     .eq('store_id', store.id)
+    .order('created_at', { ascending: false })
     .limit(20000);
 
   if (since) {
@@ -43,7 +46,11 @@ export default async function AnalyticsPage({
     itemsQuery = itemsQuery.gte('created_at', since);
   }
 
-  const [{ data: orders }, { data: items }] = await Promise.all([ordersQuery, itemsQuery]);
+  const [{ data: orders }, { data: items }, { data: products }] = await Promise.all([
+    ordersQuery,
+    itemsQuery,
+    supabase.from('products').select('*').eq('store_id', store.id).order('name'),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-8 py-10">
@@ -74,6 +81,14 @@ export default async function AnalyticsPage({
         items={(items as ItemRow[]) || []}
         currency={store.currency || '₸'}
         days={days}
+      />
+
+      <OrdersManager
+        storeId={store.id}
+        orders={(orders as OrderRow[]) || []}
+        items={(items as ItemRow[]) || []}
+        products={(products as Product[]) || []}
+        currency={store.currency || '₸'}
       />
     </div>
   );

@@ -4,7 +4,14 @@ import { useMemo } from 'react';
 import { ShoppingBag, Wallet, Receipt, Package } from 'lucide-react';
 
 export type OrderRow = { id: string; total: number; items_count: number; created_at: string };
-export type ItemRow = { product_name: string; qty: number; price: number; created_at: string };
+export type ItemRow = {
+  id: string;
+  order_id: string;
+  product_name: string;
+  qty: number;
+  price: number;
+  created_at: string;
+};
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
