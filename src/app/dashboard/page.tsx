@@ -4,7 +4,6 @@ import { Package, LayoutGrid, Home, ExternalLink } from 'lucide-react';
 import { getSessionUser, getOwnerStore, isSubscriptionActive } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import Onboarding from '@/components/Onboarding';
-import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { storeUrl, storeDisplayUrl } from '@/lib/urls';
 
 export default async function DashboardHome() {
@@ -22,6 +21,14 @@ export default async function DashboardHome() {
   ]);
 
   const active = isSubscriptionActive(store);
+  const expires = store.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
+  const daysLeft = expires ? Math.ceil((expires.getTime() - Date.now()) / 86400000) : null;
+  const statusLabel =
+    store.subscription_status === 'active'
+      ? 'Активна'
+      : store.subscription_status === 'trial'
+      ? 'Пробный период'
+      : 'Не активна';
 
   const cards = [
     { label: 'Товаров', value: products ?? 0, icon: Package, href: '/dashboard/products' },
@@ -33,8 +40,6 @@ export default async function DashboardHome() {
     <div className="mx-auto max-w-4xl px-8 py-10">
       <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
       <p className="mt-1 text-gray-500">Панель управления магазином</p>
-
-      <SubscriptionBanner store={store} />
 
       <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5">
         <div className="flex items-center justify-between">
@@ -50,9 +55,31 @@ export default async function DashboardHome() {
             <ExternalLink className="h-4 w-4" /> Открыть
           </a>
         </div>
+      </div>
+
+      {/* Подписка */}
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-gray-500">Подписка</div>
+            <div className={`mt-1 font-medium ${active ? 'text-green-700' : 'text-amber-700'}`}>
+              {statusLabel}
+            </div>
+          </div>
+          <div className="text-right">
+            {expires && (
+              <div className="text-sm text-gray-700">
+                {active ? 'действует до' : 'закончилась'} {expires.toLocaleDateString('ru-RU')}
+              </div>
+            )}
+            {expires && active && daysLeft !== null && (
+              <div className="text-xs text-gray-400">осталось {daysLeft} дн.</div>
+            )}
+          </div>
+        </div>
         {!active && (
           <p className="mt-3 text-sm text-amber-700">
-            ⚠️ Витрина скрыта, пока подписка не активна.
+            Заказы с витрины сейчас направляются администратору платформы. Свяжитесь с нами, чтобы продлить подписку.
           </p>
         )}
       </div>

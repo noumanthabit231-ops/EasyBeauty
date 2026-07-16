@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { isSubscriptionActive } from '@/lib/auth';
+import { FALLBACK_WHATSAPP } from '@/lib/config';
 import Storefront from '@/components/Storefront';
 import type { Store, Category, Product, Banner, Link } from '@/lib/types';
 
@@ -29,8 +30,9 @@ export default async function StorePage({ params }: { params: { store: string } 
 
   if (!store) notFound();
 
-  // Витрина видна только если активна и подписка в силе
-  if (!store.is_active || !isSubscriptionActive(store)) {
+  // Витрина скрыта, только если её явно отключили (владелец или админ).
+  // При истёкшей подписке витрина работает, но заказы уходят администратору платформы.
+  if (!store.is_active) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6 text-center">
         <div>
@@ -49,9 +51,15 @@ export default async function StorePage({ params }: { params: { store: string } 
       supabase.from('links').select('*').eq('store_id', store.id).order('sort_order'),
     ]);
 
+  // Подписка активна → заказы владельцу; истекла → администратору платформы.
+  const whatsapp = isSubscriptionActive(store)
+    ? (store.whatsapp || '').replace(/\D/g, '')
+    : FALLBACK_WHATSAPP;
+
   return (
     <Storefront
       store={store}
+      whatsapp={whatsapp}
       categories={(categories as Category[]) || []}
       products={(products as Product[]) || []}
       banners={(banners as Banner[]) || []}

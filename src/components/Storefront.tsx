@@ -36,12 +36,15 @@ function WhatsAppGlyph({ color }: { color: string }) {
 
 export default function Storefront({
   store,
+  whatsapp,
   categories,
   products,
   banners,
   links,
 }: {
   store: Store;
+  /** Номер для заказов: владельца, либо администратора платформы при истёкшей подписке. */
+  whatsapp: string;
   categories: Category[];
   products: Product[];
   banners: Banner[];
@@ -138,13 +141,15 @@ export default function Storefront({
     });
   }
   function checkout() {
-    if (!store.whatsapp) { alert('Магазин не указал номер WhatsApp.'); return; }
+    if (!whatsapp) { alert('Магазин не указал номер WhatsApp.'); return; }
     const lines = cartItems.map(
-      (i) => `• ${i.product.name} — ${i.qty} × ${i.product.price.toLocaleString('ru-RU')} ${cur} = ${(i.qty * i.product.price).toLocaleString('ru-RU')} ${cur}`
+      (i) => `• ${i.product.name} — ${i.qty} шт × ${i.product.price.toLocaleString('ru-RU')} ${cur}`
     );
-    const text = `Здравствуйте! Хочу оформить заказ в *${store.name}*:\n\n` + lines.join('\n') +
-      `\n\n*Итого: ${totalSum.toLocaleString('ru-RU')} ${cur}*` + (store.address ? `\n\nАдрес магазина: ${addrStr}` : '');
-    window.open(`https://wa.me/${store.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    const text =
+      `Здравствуйте! Хочу оформить заказ в ${store.name}\n\n` +
+      lines.join('\n') +
+      `\n\nИтого: ${totalSum.toLocaleString('ru-RU')} ${cur}`;
+    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
   // ---------- ссылки ----------
@@ -174,7 +179,7 @@ export default function Storefront({
     );
     if (l.kind === 'sale') return <button key={l.id} onClick={openSale} className={btnCls} style={style}>{inner}</button>;
     if (l.kind === 'catalog') return <button key={l.id} onClick={openCatalogRoot} className={btnCls} style={style}>{inner}</button>;
-    const href = l.kind === 'whatsapp' ? `https://wa.me/${(l.url || store.whatsapp).replace(/\D/g, '')}` : l.url || '#';
+    const href = l.kind === 'whatsapp' ? `https://wa.me/${(l.url || whatsapp).replace(/\D/g, '')}` : l.url || '#';
     return <a key={l.id} href={href} target="_blank" rel="noreferrer" className={btnCls} style={style}>{inner}</a>;
   }
 
