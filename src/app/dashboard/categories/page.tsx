@@ -16,7 +16,7 @@ export default async function CategoriesPage() {
     .order('sort_order');
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-10">
+    <div className="mx-auto max-w-2xl px-4 py-6 sm:px-8 sm:py-10">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Категории</h1>
       <p className="mb-6 text-gray-500">Группируйте товары по разделам витрины.</p>
       <CategoriesManager storeId={store.id} initial={(data as Category[]) || []} />

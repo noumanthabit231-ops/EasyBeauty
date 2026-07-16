@@ -16,14 +16,16 @@ const navItems = [
 export default function DashboardNav({
   isSuperAdmin,
   storeHref,
+  onNavigate,
 }: {
   isSuperAdmin: boolean;
   storeHref?: string;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 space-y-1 p-3">
+    <nav className="flex-1 space-y-1 overflow-y-auto p-3">
       {navItems.map((item) => {
         const active =
           item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
@@ -31,6 +33,7 @@ export default function DashboardNav({
           <Link
             key={item.href}
             href={item.href}
+            onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
               active
@@ -47,6 +50,7 @@ export default function DashboardNav({
       {isSuperAdmin && (
         <Link
           href="/admin"
+          onClick={onNavigate}
           className={`mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
             pathname.startsWith('/admin')
               ? 'bg-amber-200 text-amber-900'
@@ -61,6 +65,7 @@ export default function DashboardNav({
         <a
           href={storeHref}
           target="_blank"
+          onClick={onNavigate}
           className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
         >
           <ExternalLink className="h-4 w-4" /> Открыть витрину

@@ -32,20 +32,20 @@ export default async function DashboardHome() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl px-8 py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-8 sm:py-10">
       <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
       <p className="mt-1 text-gray-500">Панель управления магазином</p>
 
       <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <div className="text-sm text-gray-500">Адрес витрины</div>
-            <div className="font-medium text-rose-900">{storeDisplayUrl(store.slug)}</div>
+            <div className="truncate font-medium text-rose-900">{storeDisplayUrl(store.slug)}</div>
           </div>
           <a
             href={storeUrl(store.slug)}
             target="_blank"
-            className="inline-flex items-center gap-2 rounded-lg bg-rose-900 px-4 py-2 text-sm font-medium text-white hover:bg-rose-800"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-rose-900 px-4 py-2 text-sm font-medium text-white hover:bg-rose-800"
           >
             <ExternalLink className="h-4 w-4" /> Открыть
           </a>
@@ -54,14 +54,14 @@ export default async function DashboardHome() {
 
       {/* Подписка */}
       <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm text-gray-500">Подписка</div>
             <div className={`mt-1 font-medium ${active ? 'text-green-700' : 'text-amber-700'}`}>
               {statusLabel}
             </div>
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             {expires && (
               <div className="text-sm text-gray-700">
                 {active ? 'действует до' : 'закончилась'} {expires.toLocaleDateString('ru-RU')}

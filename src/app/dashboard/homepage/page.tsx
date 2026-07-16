@@ -17,7 +17,7 @@ export default async function HomepagePage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl px-8 py-10">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-8 sm:py-10">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Главная страница</h1>
       <p className="mb-8 text-gray-500">Баннеры-акции, кнопки-ссылки, блок «О нас» и карта — всё, что видит клиент на первом экране.</p>
 

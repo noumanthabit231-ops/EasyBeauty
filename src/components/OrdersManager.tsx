@@ -123,7 +123,7 @@ export default function OrdersManager({
 
   return (
     <div className="mt-8">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Заказы</h2>
           <p className="text-sm text-gray-500">
@@ -132,7 +132,7 @@ export default function OrdersManager({
         </div>
         <button
           onClick={() => { resetForm(); setOpen(true); }}
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-rose-900 px-4 py-2.5 font-medium text-white hover:bg-rose-800"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-rose-900 px-4 py-2.5 font-medium text-white hover:bg-rose-800"
         >
           <Plus className="h-4 w-4" /> Добавить заказ
         </button>

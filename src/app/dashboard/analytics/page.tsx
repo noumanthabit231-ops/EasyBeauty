@@ -53,7 +53,7 @@ export default async function AnalyticsPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-8 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Аналитика</h1>
       <p className="mb-6 text-gray-500">
         Заказ учитывается в момент, когда клиент нажал «Оформить заказ в WhatsApp» на витрине.
