@@ -33,9 +33,10 @@ create table if not exists public.stores (
   cover_url text default '',
   button_color text default '#7a1220',        -- цвет кнопок/акцента
   text_on_button text default '#ffffff',
-  font_family text default 'inter',            -- шрифт витрины
+  font_family text default 'inter',            -- шрифт текста и кнопок витрины
   bg_color text default '',                     -- цвет фона (пусто = по умолчанию)
   bg_image_url text default '',                 -- картинка-фон витрины
+  title_font text default '',                   -- шрифт названия (пусто = как у витрины)
   title_color text default '',                  -- цвет названия (пусто = по умолчанию)
   title_size int default 30,                    -- размер названия, px
   logo_size int default 96,                     -- размер логотипа-аватара, px

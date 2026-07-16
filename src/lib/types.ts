@@ -25,6 +25,7 @@ export interface Store {
   font_family: string;
   bg_color: string;
   bg_image_url: string;
+  title_font: string;
   title_color: string;
   title_size: number;
   logo_size: number;

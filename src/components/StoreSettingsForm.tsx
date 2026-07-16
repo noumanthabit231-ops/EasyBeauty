@@ -28,6 +28,7 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     font_family: store.font_family || 'inter',
     bg_color: store.bg_color || '',
     bg_image_url: store.bg_image_url || '',
+    title_font: store.title_font || '',
     title_color: store.title_color || '',
     title_size: store.title_size || 30,
     logo_size: store.logo_size || 96,
@@ -167,6 +168,18 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
               <input className={input} value={form.text_on_button} onChange={(e) => set('text_on_button', e.target.value)} />
             </div>
           </div>
+          <div className="sm:col-span-2">
+            <label className={label}>Шрифт названия (логотипа)</label>
+            <select className={input} value={form.title_font} onChange={(e) => set('title_font', e.target.value)}>
+              <option value="">Как у витрины</option>
+              {FONTS.map((f) => (
+                <option key={f.key} value={f.key}>{f.label}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-400">
+              Можно задать отдельный шрифт для названия — например, изящный Cormorant для логотипа, а кнопки оставить простым Inter.
+            </p>
+          </div>
           <div>
             <label className={label}>Цвет названия</label>
             <div className="flex items-center gap-3">
@@ -189,7 +202,11 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             />
             <div
               className="mt-1 truncate rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 font-bold"
-              style={{ fontFamily: fontStack(form.font_family), fontSize: form.title_size, color: form.title_color || '#111827' }}
+              style={{
+                fontFamily: fontStack(form.title_font || form.font_family),
+                fontSize: form.title_size,
+                color: form.title_color || '#111827',
+              }}
             >
               {form.name || 'Название'}
             </div>
@@ -237,15 +254,16 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
         <h2 className="mb-4 text-lg font-semibold">Шрифт и фон</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className={label}>Шрифт витрины</label>
+            <label className={label}>Шрифт текста и кнопок</label>
             <select className={input} value={form.font_family} onChange={(e) => set('font_family', e.target.value)}>
               {FONTS.map((f) => (
                 <option key={f.key} value={f.key}>{f.label}</option>
               ))}
             </select>
             <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-lg" style={{ fontFamily: fontStack(form.font_family) }}>
-              {form.name || 'Пример текста'} — 12 500 ₸
+              Каталог товаров — 12 500 ₸
             </div>
+            <p className="mt-1 text-xs text-gray-400">Кнопки, категории, товары. Шрифт названия задаётся отдельно в «Оформлении».</p>
           </div>
 
           <div>

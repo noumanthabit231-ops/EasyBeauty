@@ -257,6 +257,8 @@ export default function Storefront({
   const logoPx = store.logo_size || 96;
   const titlePx = store.title_size || 30;
   const titleColor = store.title_color || '#111827';
+  // шрифт названия задаётся отдельно; пусто — берём общий шрифт витрины
+  const titleFont = fontStack(store.title_font || store.font_family);
 
   const logoBlock = (big: boolean, onClick?: () => void) => {
     const size = big ? logoPx : Math.round(logoPx * 0.6);
@@ -289,7 +291,10 @@ export default function Storefront({
               store.title_plate ? 'rounded-2xl bg-white/75 px-6 py-3 backdrop-blur-sm' : ''
             }`}
           >
-            <h1 className="font-bold leading-tight" style={{ fontSize: titlePx, color: titleColor }}>
+            <h1
+              className="font-bold leading-tight"
+              style={{ fontSize: titlePx, color: titleColor, fontFamily: titleFont }}
+            >
               {store.name}
             </h1>
             {store.description && (
