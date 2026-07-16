@@ -1,29 +1,35 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ExternalLink } from 'lucide-react';
-import { activateSubscription, expireSubscription, toggleStoreActive } from '@/app/admin/actions';
+import { ExternalLink, Check } from 'lucide-react';
+import {
+  activateSubscription,
+  expireSubscription,
+  toggleStoreActive,
+  setSubscriptionUntil,
+} from '@/app/admin/actions';
 import { storeUrl, storeDisplayUrl } from '@/lib/urls';
 import type { Store } from '@/lib/types';
 
-function StatusBadge({ store }: { store: Store }) {
-  const isActive =
-    store.subscription_status === 'active' &&
-    (!store.subscription_expires_at || new Date(store.subscription_expires_at) > new Date());
-  return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-      }`}
-    >
-      {isActive ? 'Активна' : 'Нет подписки'}
-    </span>
-  );
+function subActive(s: Store): boolean {
+  if (s.subscription_status !== 'active') return false;
+  if (!s.subscription_expires_at) return true;
+  return new Date(s.subscription_expires_at) > new Date();
+}
+
+function toDateInput(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  // local YYYY-MM-DD
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
 }
 
 export default function AdminStores({ stores }: { stores: Store[] }) {
   const [pending, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [dates, setDates] = useState<Record<string, string>>({});
 
   function run(id: string, fn: () => Promise<void>) {
     setBusyId(id);
@@ -31,6 +37,10 @@ export default function AdminStores({ stores }: { stores: Store[] }) {
       await fn();
       setBusyId(null);
     });
+  }
+
+  function dateFor(s: Store): string {
+    return dates[s.id] ?? toDateInput(s.subscription_expires_at);
   }
 
   if (stores.length === 0) {
@@ -52,18 +62,28 @@ export default function AdminStores({ stores }: { stores: Store[] }) {
         <tbody>
           {stores.map((s) => {
             const busy = busyId === s.id && pending;
+            const active = subActive(s);
             return (
-              <tr key={s.id} className="border-b border-gray-50 last:border-0">
+              <tr key={s.id} className="border-b border-gray-50 last:border-0 align-top">
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">{s.name}</div>
                   <a href={storeUrl(s.slug)} target="_blank" className="inline-flex items-center gap-1 text-xs text-rose-600 hover:underline">
                     {storeDisplayUrl(s.slug)} <ExternalLink className="h-3 w-3" />
                   </a>
                 </td>
-                <td className="px-4 py-3"><StatusBadge store={s} /></td>
-                <td className="px-4 py-3 text-gray-600">
-                  {s.subscription_expires_at ? new Date(s.subscription_expires_at).toLocaleDateString('ru-RU') : '—'}
+
+                <td className="px-4 py-3">
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {active ? 'Активна' : 'Нет подписки'}
+                  </span>
                 </td>
+
+                <td className="px-4 py-3 text-gray-600">
+                  {active && s.subscription_expires_at
+                    ? new Date(s.subscription_expires_at).toLocaleDateString('ru-RU')
+                    : '—'}
+                </td>
+
                 <td className="px-4 py-3">
                   <button
                     onClick={() => run(s.id, () => toggleStoreActive(s.id, !s.is_active))}
@@ -73,6 +93,7 @@ export default function AdminStores({ stores }: { stores: Store[] }) {
                     {s.is_active ? 'вкл' : 'выкл'}
                   </button>
                 </td>
+
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1.5">
                     <button onClick={() => run(s.id, () => activateSubscription(s.id, 1))} disabled={busy}
@@ -92,6 +113,25 @@ export default function AdminStores({ stores }: { stores: Store[] }) {
                       Отключить
                     </button>
                   </div>
+
+                  {/* Произвольная дата окончания */}
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <input
+                      type="date"
+                      value={dateFor(s)}
+                      onChange={(e) => setDates((d) => ({ ...d, [s.id]: e.target.value }))}
+                      className="rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-rose-400"
+                    />
+                    <button
+                      onClick={() => run(s.id, () => setSubscriptionUntil(s.id, dateFor(s)))}
+                      disabled={busy || !dateFor(s)}
+                      title="Установить дату окончания подписки"
+                      className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-800 hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      <Check className="h-3 w-3" /> Установить
+                    </button>
+                  </div>
+                  <p className="mt-1 text-[10px] text-gray-400">Дата включительно. Прошедшая дата — отключит подписку.</p>
                 </td>
               </tr>
             );

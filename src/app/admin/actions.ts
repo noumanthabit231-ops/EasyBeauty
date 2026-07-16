@@ -40,6 +40,30 @@ export async function activateSubscription(storeId: string, months: number) {
   revalidatePath('/admin');
 }
 
+/** Установить произвольную дату окончания подписки (YYYY-MM-DD). */
+export async function setSubscriptionUntil(storeId: string, dateISO: string) {
+  await assertSuperAdmin();
+  if (!dateISO) throw new Error('Не указана дата');
+
+  // конец выбранного дня — чтобы «до 20 июля» означало включительно
+  const until = new Date(`${dateISO}T23:59:59`);
+  if (isNaN(until.getTime())) throw new Error('Некорректная дата');
+
+  const isPast = until <= new Date();
+  const admin = createAdminClient();
+
+  await admin
+    .from('stores')
+    .update({
+      subscription_status: isPast ? 'expired' : 'active',
+      subscription_expires_at: until.toISOString(),
+      ...(isPast ? {} : { is_active: true }),
+    })
+    .eq('id', storeId);
+
+  revalidatePath('/admin');
+}
+
 /** Пометить подписку истёкшей (скрывает витрину). */
 export async function expireSubscription(storeId: string) {
   await assertSuperAdmin();

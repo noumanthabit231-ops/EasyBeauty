@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getProfile } from '@/lib/auth';
+import { getProfile, isSubscriptionActive } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import AdminStores from '@/components/AdminStores';
 import LogoutButton from '@/components/LogoutButton';
@@ -20,7 +20,7 @@ export default async function AdminPage() {
     .order('created_at', { ascending: false });
 
   const list = (stores as Store[]) || [];
-  const activeCount = list.filter((s) => s.subscription_status === 'active').length;
+  const activeCount = list.filter(isSubscriptionActive).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
