@@ -38,10 +38,9 @@ export const getOwnerStore = cache(async (): Promise<Store | null> => {
   return data as Store | null;
 });
 
+/** Подписка активна, только если её включил админ и срок ещё не вышел. */
 export function isSubscriptionActive(store: Store): boolean {
-  if (store.subscription_status === 'active') return true;
-  if (store.subscription_status === 'trial' && store.subscription_expires_at) {
-    return new Date(store.subscription_expires_at) > new Date();
-  }
-  return false;
+  if (store.subscription_status !== 'active') return false;
+  if (!store.subscription_expires_at) return true;
+  return new Date(store.subscription_expires_at) > new Date();
 }

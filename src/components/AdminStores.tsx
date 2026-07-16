@@ -7,15 +7,16 @@ import { storeUrl, storeDisplayUrl } from '@/lib/urls';
 import type { Store } from '@/lib/types';
 
 function StatusBadge({ store }: { store: Store }) {
-  const map: Record<string, string> = {
-    active: 'bg-green-100 text-green-700',
-    trial: 'bg-blue-100 text-blue-700',
-    expired: 'bg-red-100 text-red-700',
-  };
-  const label: Record<string, string> = { active: 'Активна', trial: 'Пробный', expired: 'Истекла' };
+  const isActive =
+    store.subscription_status === 'active' &&
+    (!store.subscription_expires_at || new Date(store.subscription_expires_at) > new Date());
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[store.subscription_status]}`}>
-      {label[store.subscription_status]}
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+        isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+      }`}
+    >
+      {isActive ? 'Активна' : 'Нет подписки'}
     </span>
   );
 }

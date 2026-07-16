@@ -39,9 +39,10 @@ create table if not exists public.stores (
   about text default '',                         -- блок «О нас» на главной
   show_map boolean not null default true,        -- показывать карту на главной
   is_active boolean not null default true,    -- витрина видна публично
-  -- Подписка (управляется супер-админом вручную)
-  subscription_status text not null default 'trial',  -- 'trial' | 'active' | 'expired'
-  subscription_expires_at timestamptz default (now() + interval '14 days'),
+  -- Подписка (включается супер-админом вручную). Пробного периода нет:
+  -- новый магазин создаётся без подписки, заказы уходят администратору платформы.
+  subscription_status text not null default 'expired',  -- 'active' | 'expired'
+  subscription_expires_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

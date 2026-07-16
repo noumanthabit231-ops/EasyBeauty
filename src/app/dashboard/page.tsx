@@ -23,12 +23,7 @@ export default async function DashboardHome() {
   const active = isSubscriptionActive(store);
   const expires = store.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
   const daysLeft = expires ? Math.ceil((expires.getTime() - Date.now()) / 86400000) : null;
-  const statusLabel =
-    store.subscription_status === 'active'
-      ? 'Активна'
-      : store.subscription_status === 'trial'
-      ? 'Пробный период'
-      : 'Не активна';
+  const statusLabel = active ? 'Активна' : 'Не активна';
 
   const cards = [
     { label: 'Товаров', value: products ?? 0, icon: Package, href: '/dashboard/products' },

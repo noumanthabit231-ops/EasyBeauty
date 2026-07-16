@@ -1,5 +1,5 @@
 export type Role = 'owner' | 'super_admin';
-export type SubStatus = 'trial' | 'active' | 'expired';
+export type SubStatus = 'active' | 'expired';
 
 export interface Profile {
   id: string;
