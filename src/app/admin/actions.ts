@@ -11,21 +11,26 @@ async function assertSuperAdmin() {
   }
 }
 
-/** Активировать подписку на N месяцев (продлевает от текущей даги окончания или now). */
+/**
+ * Активировать подписку на N месяцев.
+ * Если подписка сейчас ДЕЙСТВУЕТ — продлеваем от её даты окончания.
+ * Если её нет (или срок вышел) — отсчитываем от сегодня, а не от старой даты.
+ */
 export async function activateSubscription(storeId: string, months: number) {
   await assertSuperAdmin();
   const admin = createAdminClient();
 
   const { data: store } = await admin
     .from('stores')
-    .select('subscription_expires_at')
+    .select('subscription_status, subscription_expires_at')
     .eq('id', storeId)
     .single();
 
-  const base =
-    store?.subscription_expires_at && new Date(store.subscription_expires_at) > new Date()
-      ? new Date(store.subscription_expires_at)
-      : new Date();
+  const currentEnd = store?.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
+  const isActiveNow =
+    store?.subscription_status === 'active' && !!currentEnd && currentEnd > new Date();
+
+  const base = isActiveNow ? currentEnd! : new Date();
   base.setMonth(base.getMonth() + months);
 
   await admin
