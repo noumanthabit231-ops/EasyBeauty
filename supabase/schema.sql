@@ -36,6 +36,10 @@ create table if not exists public.stores (
   font_family text default 'inter',            -- шрифт витрины
   bg_color text default '',                     -- цвет фона (пусто = по умолчанию)
   bg_image_url text default '',                 -- картинка-фон витрины
+  title_color text default '',                  -- цвет названия (пусто = по умолчанию)
+  title_size int default 30,                    -- размер названия, px
+  logo_size int default 96,                     -- размер логотипа-аватара, px
+  title_plate boolean default false,            -- белая подложка под названием
   about text default '',                         -- блок «О нас» на главной
   show_map boolean not null default true,        -- показывать карту на главной
   is_active boolean not null default true,    -- витрина видна публично

@@ -254,24 +254,52 @@ export default function Storefront({
     </div>
   );
 
-  const logoBlock = (big: boolean, onClick?: () => void) => (
-    <div className="relative flex flex-col items-center pt-8 text-center">
-      <div className="pointer-events-none absolute -top-4 h-40 w-40 rounded-full opacity-40 blur-2xl" style={{ background: accent + '33' }} />
-      <button onClick={onClick} disabled={!onClick} className={onClick ? 'relative cursor-pointer' : 'relative'}>
-        {store.logo_url ? (
-          <img src={store.logo_url} alt={store.name} className={`rounded-full bg-white object-cover shadow-sm ${big ? 'h-24 w-24' : 'h-16 w-16'}`} />
-        ) : (
-          <div className={`flex items-center justify-center rounded-full font-bold shadow-sm ${big ? 'h-24 w-24 text-3xl' : 'h-16 w-16 text-xl'}`} style={featBtn}>{store.name.charAt(0)}</div>
+  const logoPx = store.logo_size || 96;
+  const titlePx = store.title_size || 30;
+  const titleColor = store.title_color || '#111827';
+
+  const logoBlock = (big: boolean, onClick?: () => void) => {
+    const size = big ? logoPx : Math.round(logoPx * 0.6);
+    return (
+      <div className="relative flex flex-col items-center pt-8 text-center">
+        <div
+          className="pointer-events-none absolute -top-4 rounded-full opacity-40 blur-2xl"
+          style={{ background: accent + '33', width: size * 1.7, height: size * 1.7 }}
+        />
+        <button onClick={onClick} disabled={!onClick} className={onClick ? 'relative cursor-pointer' : 'relative'}>
+          {store.logo_url ? (
+            <img
+              src={store.logo_url}
+              alt={store.name}
+              className="rounded-full object-cover"
+              style={{ width: size, height: size }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center rounded-full font-bold shadow-sm"
+              style={{ ...featBtn, width: size, height: size, fontSize: Math.round(size / 3) }}
+            >
+              {store.name.charAt(0)}
+            </div>
+          )}
+        </button>
+        {big && (
+          <div
+            className={`relative mt-3 flex flex-col items-center ${
+              store.title_plate ? 'rounded-2xl bg-white/75 px-6 py-3 backdrop-blur-sm' : ''
+            }`}
+          >
+            <h1 className="font-bold leading-tight" style={{ fontSize: titlePx, color: titleColor }}>
+              {store.name}
+            </h1>
+            {store.description && (
+              <p className="mt-1 max-w-md whitespace-pre-line text-sm text-gray-600">{store.description}</p>
+            )}
+          </div>
         )}
-      </button>
-      {big && (
-        <div className={`relative mt-3 flex flex-col items-center ${hasBgImage ? 'rounded-2xl bg-white/75 px-6 py-3 backdrop-blur-sm' : ''}`}>
-          <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
-          {store.description && <p className="mt-1 max-w-md text-sm text-gray-600">{store.description}</p>}
-        </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   // =================== ГЛАВНАЯ (лендинг) ===================
   if (atLanding) {

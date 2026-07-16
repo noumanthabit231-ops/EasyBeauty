@@ -28,6 +28,10 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
     font_family: store.font_family || 'inter',
     bg_color: store.bg_color || '',
     bg_image_url: store.bg_image_url || '',
+    title_color: store.title_color || '',
+    title_size: store.title_size || 30,
+    logo_size: store.logo_size || 96,
+    title_plate: store.title_plate ?? false,
     is_active: store.is_active,
     logo_url: store.logo_url || '',
     cover_url: store.cover_url || '',
@@ -111,8 +115,15 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             <input className={input} value={form.slug} onChange={(e) => set('slug', e.target.value)} />
           </div>
           <div className="sm:col-span-2">
-            <label className={label}>Описание</label>
-            <textarea className={input} rows={2} value={form.description} onChange={(e) => set('description', e.target.value)} />
+            <label className={label}>Текст под названием</label>
+            <textarea
+              className={input}
+              rows={3}
+              value={form.description}
+              onChange={(e) => set('description', e.target.value)}
+              placeholder={'КӘСІБИ ЖӘНЕ КОРЕЙ КОСМЕТИКАСЫ ДҮКЕНІ\nМАГАЗИН ПРОФЕССИОНАЛЬНОЙ И КОРЕЙСКОЙ КОСМЕТИКИ'}
+            />
+            <p className="mt-1 text-xs text-gray-400">Показывается на витрине под названием магазина. Переносы строк сохраняются.</p>
           </div>
         </div>
       </section>
@@ -155,6 +166,42 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
               <input type="color" value={form.text_on_button} onChange={(e) => set('text_on_button', e.target.value)} className="h-10 w-14 rounded border" />
               <input className={input} value={form.text_on_button} onChange={(e) => set('text_on_button', e.target.value)} />
             </div>
+          </div>
+          <div>
+            <label className={label}>Цвет названия</label>
+            <div className="flex items-center gap-3">
+              <input type="color" value={form.title_color || '#111827'} onChange={(e) => set('title_color', e.target.value)} className="h-10 w-14 rounded border" />
+              <input className={input} value={form.title_color} placeholder="по умолчанию" onChange={(e) => set('title_color', e.target.value)} />
+              {form.title_color && (
+                <button type="button" onClick={() => set('title_color', '')} className="whitespace-nowrap text-sm text-gray-400 hover:text-gray-700">
+                  сбросить
+                </button>
+              )}
+            </div>
+          </div>
+          <div>
+            <label className={label}>Размер названия — {form.title_size} px</label>
+            <input
+              type="range" min={18} max={64} step={1}
+              value={form.title_size}
+              onChange={(e) => set('title_size', Number(e.target.value))}
+              className="w-full"
+            />
+            <div
+              className="mt-1 truncate rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 font-bold"
+              style={{ fontFamily: fontStack(form.font_family), fontSize: form.title_size, color: form.title_color || '#111827' }}
+            >
+              {form.name || 'Название'}
+            </div>
+          </div>
+          <div className="sm:col-span-2">
+            <label className={label}>Размер логотипа — {form.logo_size} px</label>
+            <input
+              type="range" min={56} max={180} step={4}
+              value={form.logo_size}
+              onChange={(e) => set('logo_size', Number(e.target.value))}
+              className="w-full max-w-sm"
+            />
           </div>
           <div>
             <label className={label}>Аватар (логотип)</label>
@@ -231,6 +278,16 @@ export default function StoreSettingsForm({ store }: { store: Store }) {
             )}
             <input type="file" accept="image/*" onChange={(e) => handleUpload('bg_image_url', e.target.files?.[0])} />
             <p className="mt-1 text-xs text-gray-400">Если загружена картинка — она важнее цвета фона. Товары показываются на белых карточках поверх фона.</p>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="flex items-center gap-3">
+              <input type="checkbox" checked={form.title_plate} onChange={(e) => set('title_plate', e.target.checked)} className="h-5 w-5" />
+              <span className="text-sm font-medium text-gray-700">Белая подложка под названием</span>
+            </label>
+            <p className="mt-1 text-xs text-gray-400">
+              Нужна, только если название плохо читается поверх пёстрого фона. По умолчанию выключена.
+            </p>
           </div>
         </div>
       </section>
