@@ -6,8 +6,10 @@ import {
   Home, Instagram, Music2, Send, Percent, Gift, Package, Link as LinkIcon, Info, LayoutGrid,
 } from 'lucide-react';
 import { fontStack } from '@/lib/theme';
+import { productImages } from '@/lib/product';
 import { createClient } from '@/lib/supabase/client';
 import BannerCarousel from '@/components/BannerCarousel';
+import ProductGallery from '@/components/ProductGallery';
 import type { Store, Category, Product, Banner, Link, LinkKind, CartItem } from '@/lib/types';
 
 function luminance(hex: string): number {
@@ -233,14 +235,10 @@ export default function Storefront({
     <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
       {list.map((p) => (
         <div key={p.id} className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <button onClick={() => setDetail(p)} className="relative aspect-square bg-gray-50">
-            {p.image_url ? (
-              <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-300">нет фото</div>
-            )}
-            {p.badge && <span className="absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: accent, color: onAccent }}>{p.badge}</span>}
-          </button>
+          <div className="relative aspect-square bg-gray-50">
+            <ProductGallery images={productImages(p)} accent={accent} onImageClick={() => setDetail(p)} />
+            {p.badge && <span className="pointer-events-none absolute left-2 top-2 z-10 rounded px-1.5 py-0.5 text-[10px] font-bold" style={{ background: accent, color: onAccent }}>{p.badge}</span>}
+          </div>
           <div className="flex flex-1 flex-col p-3">
             <button onClick={() => setDetail(p)} className="text-left text-sm font-medium leading-tight text-gray-900 hover:underline">{p.name}</button>
             <div className="mt-2 flex items-baseline gap-2">
@@ -437,7 +435,7 @@ export default function Storefront({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="aspect-square w-full bg-gray-50">
-            {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-gray-300">нет фото</div>}
+            <ProductGallery images={productImages(p)} fit="contain" autoplay accent={accent} />
           </div>
           <div className="p-5">
             <h1 className="text-xl font-bold" style={{ color: buttonTextOnWhite }}>{p.name}</h1>

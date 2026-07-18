@@ -83,7 +83,8 @@ create table if not exists public.products (
   description text default '',
   price numeric(12,2) not null default 0,
   old_price numeric(12,2),                     -- для показа скидки (зачёркнутая)
-  image_url text default '',
+  image_url text default '',                    -- главное фото (= images[0], для совместимости)
+  images text[] not null default '{}',          -- галерея фото товара
   badge text default '',                       -- напр. 'ХИТ', 'НОВИНКА', 'АКЦИЯ'
   is_available boolean not null default true,
   sort_order int not null default 0,

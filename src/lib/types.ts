@@ -59,6 +59,7 @@ export interface Product {
   price: number;
   old_price: number | null;
   image_url: string;
+  images: string[];
   badge: string;
   is_available: boolean;
   sort_order: number;
